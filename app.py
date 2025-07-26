@@ -4,7 +4,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 s3 = boto3.client('s3')
-BUCKET = "filedrop-demo"  # same as your bucket
+BUCKET = "filedrop-demo-project"  # same as your bucket 
 
 HTML = """
 <h2>Upload a File</h2>
