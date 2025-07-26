@@ -31,7 +31,8 @@ def upload_file():
         try:
             file = request.files['file']
             filename = datetime.now().strftime("%Y%m%d-%H%M%S-") + file.filename
-            s3.upload_fileobj(file, BUCKET, filename, ExtraArgs={"ACL": "public-read"})
+            s3.upload_fileobj(file, BUCKET, filename)
+
             url = f"https://{BUCKET}.s3.amazonaws.com/{filename}"
         except Exception as e:
             print("ERROR:", e)  # Will show full error in EC2 terminal
