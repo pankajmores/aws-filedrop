@@ -3,87 +3,88 @@ import boto3
 from datetime import datetime
 
 app = Flask(__name__)
-
-# S3 Configuration
-s3 = boto3.client('s3', region_name='ap-south-1')
-BUCKET = "filedrop-demo-project"
+s3 = boto3.client('s3')
+BUCKET = "filedrop-demo-project"  # replace with your bucket name
 
 HTML = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>File Uploader</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(to right, #667eea, #764ba2);
-            color: #fff;
-            display: flex;
-            height: 100vh;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-        }
-        .container {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
-        }
-        h2 {
-            margin-bottom: 20px;
-        }
-        input[type="file"] {
-            background: #fff;
-            color: #333;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        button {
-            background-color: #fff;
-            color: #333;
-            padding: 10px 24px;
-            font-size: 1rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        button:hover {
-            background-color: #ddd;
-        }
-        a {
-            color: #ffeb3b;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        p {
-            margin-top: 15px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS FileDrop</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(120deg, #74ABE2, #5563DE);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      padding: 30px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      width: 320px;
+      animation: fadeIn 0.8s ease;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input[type="file"] {
+      margin: 15px 0;
+      padding: 6px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    p {
+      margin-top: 20px;
+    }
+    a {
+      color: #4CAF50;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
+  <div class="card">
     <h2>Upload a File</h2>
     <form method="post" enctype="multipart/form-data">
       <input type="file" name="file" required>
-      <br>
+      <br><br>
       <button type="submit">Upload</button>
     </form>
-    {% if error %}
-    <p style="color:#f44336;">Error: {{ error }}</p>
-    {% endif %}
     {% if url %}
-    <p>Uploaded! <a href="{{ url }}" target="_blank">Open File</a></p>
+      <p class="success">Uploaded!</p>
+      <p><a href="{{ url }}" target="_blank">Open File</a></p>
     {% endif %}
   </div>
 </body>
@@ -93,17 +94,12 @@ HTML = """
 @app.route("/", methods=["GET", "POST"])
 def upload_file():
     url = None
-    error = None
     if request.method == "POST":
-        try:
-            file = request.files['file']
-            filename = datetime.now().strftime("%Y%m%d-%H%M%S-") + file.filename
-            s3.upload_fileobj(file, BUCKET, filename)
-            url = f"https://{BUCKET}.s3.amazonaws.com/{filename}"
-        except Exception as e:
-            print("ERROR:", e)
-            error = str(e)
-    return render_template_string(HTML, url=url, error=error)
+        file = request.files['file']
+        filename = datetime.now().strftime("%Y%m%d-%H%M%S-") + file.filename
+        s3.upload_fileobj(file, BUCKET, filename)
+        url = f"https://{BUCKET}.s3.amazonaws.com/{filename}"
+    return render_template_string(HTML, url=url)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
